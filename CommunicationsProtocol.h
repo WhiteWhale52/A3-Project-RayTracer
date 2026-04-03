@@ -8,20 +8,20 @@
 
 
 /// @brief This is the struct that will hold the message sent from the parent to the worker child. It specifies the rectangular tile of the image that the worker is going to work on. 
-typedef struct JobMessage
+typedef struct 
 {
     int m_JobID;
     int m_XStartCoord;
     int m_YStartCoord;
     int m_Width;
     int m_Height;
-};
+} JobMessage;
 
-typedef struct JobResultHeader
+typedef struct 
 {
     int m_JobID;
     int PixelCount;
-};
+} JobResultHeader;
 
 
 static inline ssize_t ReadExact(int fd, void *buf, size_t n) {
