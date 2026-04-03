@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-typedef long long LLONG;
 
 /// @brief This is the struct that will hold the message sent from the parent to the worker child. It specifies the rectangular tile of the image that the worker is going to work on. 
 typedef struct JobMessage
@@ -23,10 +22,6 @@ typedef struct JobResultHeader
     int m_JobID;
     int PixelCount;
 };
-
-typedef Pixel {
-    int r,g,b;
-}
 
 
 static inline ssize_t ReadExact(int fd, void *buf, size_t n) {
