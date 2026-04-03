@@ -9,14 +9,14 @@ typedef struct {
 } Vector3;
 
 static inline Vector3 Add(Vector3 a, Vector3 b) {
-    return Vector3{
+    return (Vector3){
         a.x + b.x,
         a.y + b.y,
         a.z + b.z
     };
 }
 static inline Vector3 Subtract(Vector3 a, Vector3 b){
-       return Vector3{
+       return (Vector3){
         a.x - b.x,
         a.y - b.y,
         a.z - b.z
@@ -24,7 +24,7 @@ static inline Vector3 Subtract(Vector3 a, Vector3 b){
 }
 
 static inline Vector3 Scale(Vector3 v, float s){
-       return Vector3{
+       return (Vector3){
         v.x * s,
         v.y * s,
         v.z * s
@@ -32,7 +32,7 @@ static inline Vector3 Scale(Vector3 v, float s){
 }
 
 static inline Vector3 Mul(Vector3 a, Vector3 b){
-       return Vector3{
+       return (Vector3){
         a.x * b.x,
         a.y * b.y,
         a.z * b.z
@@ -48,14 +48,14 @@ static inline float  Dot(Vector3 a, Vector3 b){
 }
 
 static inline Vector3 Cross(Vector3 a, Vector3 b){
-     return Vector3{
+     return (Vector3){
         a.y*b.z - a.z*b.y,
         a.z*b.x - a.x*b.z,
         a.x*b.y - a.y*b.x
     };
 }
 
-static inline float   Length(Vector3 v){
+static inline float Length(Vector3 v){
      return sqrtf(Dot(v, v));
 }
 

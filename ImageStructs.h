@@ -5,14 +5,14 @@
 
 #define MAX_SPHERES 32
 
-typedef struct Pixel {
+typedef struct {
     unsigned char r,g,b;
-};
+} Pixel;
 
 
 typedef struct {
     Vector3 origin;
-    Vector3 dir;    
+    Vector3 direction;    
 } Ray;
 
 
