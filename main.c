@@ -70,4 +70,6 @@ int main(int argc, char* argv[]){
         close(m_Workers[i].jobFD);
     }
     
+    ReapWorkers(m_Workers, m_NumofWorkers);
+
 }

@@ -58,7 +58,7 @@ static void SpawnWorkers(Worker* workers, int n, const Scene* scene);
 
 static void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffer, int imgWidth, int imgHeight, int tileSize);
 
-static void reap_workers(Worker* workers, int n);
+static void RIPWorkers(Worker* workers, int n);
 
 
 #endif
