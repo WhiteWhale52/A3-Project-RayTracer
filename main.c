@@ -3,16 +3,9 @@
 #include <stdio.h>
 #include "CommunicationsProtocol.h"
 #include "RayTracer.h"
+#include "Worker.h"
 #include "PPM.h"
 
-#pragma region Consts 
-#define DEFAULT_WIDTH    800
-#define DEFAULT_HEIGHT   600
-#define DEFAULT_WORKERS  4
-#define DEFAULT_TILE_SIZE  64  
-#define DEFAULT_SAMPLES  4
-#define DEFAULT_DEPTH    8
-#pragma endregion Consts
 
 int main(int argc, char* argv[]){
     int m_ImageWidth = DEFAULT_WIDTH;
@@ -70,6 +63,74 @@ int main(int argc, char* argv[]){
         close(m_Workers[i].jobFD);
     }
     
-    ReapWorkers(m_Workers, m_NumofWorkers);
+    RIPWorkers(m_Workers, m_NumofWorkers);
+
+    if (WritePPM(out, m_frameBuffer, m_ImageWidth, m_ImageHeight) != 0){
+        fprintf(stderr, "Failed to write %s\n", out);
+        free(m_frameBuffer); 
+        free(m_Workers);
+        return 1;
+    }
+
+    printf("Wrote %s (%dx%d, %d workers, tile %d, %d samples per pixel)\n",
+                  out, m_ImageWidth, m_ImageHeight, m_NumofWorkers, m_TileSize, m_Samples);
+
+    free(m_frameBuffer);
+    free(m_Workers);
+
+    return 0;
 
 }
+
+void BuildScene(Scene* scene, int width, int height, int samples, int max_depth){
+    scene->image_width = width;
+    scene->image_height = height;
+    scene->max_depth = max_depth;
+    scene->num_spheres = 0;
+    scene->samples_per_pixel = samples;
+   
+    /* ── TODO: set up camera ─────────────────────────────────
+     *
+     * Hint — standard pinhole setup:
+     *
+     *   vec3_t look_from = {3, 2, 5};
+     *   vec3_t look_at   = {0, 0, 0};
+     *   vec3_t vup       = {0, 1, 0};
+     *   float  vfov      = 40.0f;   // vertical FOV in degrees
+     *   float  aspect    = (float)width / (float)height;
+     *
+     *   float theta      = vfov * (float)M_PI / 180.0f;
+     *   float half_h     = tanf(theta / 2.0f);
+     *   float half_w     = aspect * half_h;
+     *
+     *   vec3_t w = vec3_norm(vec3_sub(look_from, look_at));
+     *   vec3_t u = vec3_norm(vec3_cross(vup, w));
+     *   vec3_t v = vec3_cross(w, u);
+     *
+     *   scene->cam.origin      = look_from;
+     *   scene->cam.horizontal  = vec3_scale(u, 2*half_w);
+     *   scene->cam.vertical    = vec3_scale(v, 2*half_h);
+     *   scene->cam.lower_left  = look_from
+     *                            - half_w*u - half_h*v - w;
+     */
+
+    /* ── TODO: add spheres ───────────────────────────────────
+     *
+     * Example:
+     *   int n = scene->num_spheres;
+     *   scene->spheres[n].center        = (vec3_t){0, 0, -1};
+     *   scene->spheres[n].radius        = 0.5f;
+     *   scene->spheres[n].mat.color     = (vec3_t){0.8, 0.3, 0.3};
+     *   scene->spheres[n].mat.reflectance = 0.0f;
+     *   scene->num_spheres++;
+     *
+     *   // ground plane as a huge sphere
+     *   n = scene->num_spheres;
+     *   scene->spheres[n].center        = (vec3_t){0, -100.5, -1};
+     *   scene->spheres[n].radius        = 100.0f;
+     *   scene->spheres[n].mat.color     = (vec3_t){0.5, 0.5, 0.5};
+     *   scene->spheres[n].mat.reflectance = 0.0f;
+     *   scene->num_spheres++;
+     */
+}
+
