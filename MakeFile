@@ -1,26 +1,23 @@
-CC = gcc
-
+CC     = gcc
 CFLAGS = -Wall -Wextra -O2 -g
 
-TARGET = Raytracer-Project
-SRCS = main.c Worker.c RayTracer.c PPM.c 
-OBJS = ($SRCS:.c=.o)
+TARGET  = RayTracer-Project
+SRCS    = Worker.c RayTracer.c PPM.c main.c 
+OBJS    = $(SRCS:.c=.o)
 HEADERS = CommunicationsProtocol.h RayTracer.h PPM.h Worker.h ImageStructs.h
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ 
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
-%.o: %.c $HEADERS
+%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 run: $(TARGET)
-	./$(TARGET) -w 400 -h 300 -j 4-s 2 -o Output.ppm
-
+	./$(TARGET) -w 600 -h 800 -j 32 -s 32 -t 8 -o Output.ppm
 
 clean:
-	rm -f $(OBJS) $(TARGET) output.ppm
+	rm -f $(OBJS) $(TARGET) *.ppm
 
-.PHONY: all run view clean
-
+.PHONY: all run clean

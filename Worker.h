@@ -2,7 +2,6 @@
 #define WORKER_H
 
 #include "ImageStructs.h"
-
 typedef struct {
     int pid;
     int   jobFD;      /* parent writes jobs  here → worker reads  */
@@ -11,13 +10,13 @@ typedef struct {
 
 void WorkerRenderLoop(int read_fd, int write_fd, const Scene *scene);
 
-static void Usage(const char *prog);
+void Usage(const char *prog);
 
-static void SpawnWorkers(Worker* workers, int n, const Scene* scene);
+void SpawnWorkers(Worker* workers, int n, const Scene* scene);
 
-static void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffer, int imgWidth, int imgHeight, int tileSize);
+void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffer, int imgWidth, int imgHeight, int tileSize);
 
-static void RIPWorkers(Worker* workers, int n);
+void RIPWorkers(Worker* workers, int n);
 
 #pragma region Consts 
 #define DEFAULT_WIDTH    800

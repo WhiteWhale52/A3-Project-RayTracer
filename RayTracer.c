@@ -1,7 +1,6 @@
 #include "RayTracer.h"
 #include <float.h>
 
-#define FLT_MAX 3.40282347f * (10^38)
 
 static Ray MakeRay(const Camera* camera, float u, float v){
     Vector3 target = Add(camera->lower_left,
@@ -13,19 +12,9 @@ static Ray MakeRay(const Camera* camera, float u, float v){
     return ray;
 }
 
-/* ────────────────────────────────────────────────────────────
- * TODO 1 — Ray–sphere intersection
- *
- * Test whether ray `ray` intersects sphere `sphere` at parameter t
- * in (t_min, t_max).  Return 1 on hit and fill *t_out with
- * the nearest positive t; return 0 on miss.
- *
- * Hint: solve |ray.origin + t*ray.dir - sphere.origin|^2 = sphere.radius^2
- *        rearranges to a quadratic in t.
- * ──────────────────────────────────────────────────────────── */
+
 static int SphereIntersection(const Ray* ray, const Sphere* sphere, float t_min, float t_max, float *t_out) {
 
-    float hitTVal = FLT_MAX;
     Vector3 origin = Subtract(ray->origin, sphere->origin);
 
     float a = Dot(ray->direction, ray->direction);
@@ -45,7 +34,7 @@ static int SphereIntersection(const Ray* ray, const Sphere* sphere, float t_min,
     if (t > t_min && t < t_max) { *t_out = t; return 1; }
 
     
-    return 1; 
+    return 0; 
 }
 
 
@@ -65,19 +54,7 @@ static int SceneIntersection(const Scene* p_Scene, const Ray* ray, float t_min, 
     return foundIntersection;
 }
 
-/* ────────────────────────────────────────────────────────────
- * TODO 3 — Recursive colour / shading function
- *
- * Cast ray `ray` into the scene.  On a hit, compute shading
- * and optionally recurse (reflection / diffuse bounce) up to
- * `depth` times.  Return the colour as a Vector3 in [0,1]^3.
- *
- * Minimum viable version: Lambertian diffuse + sky gradient.
- * Stretch goal: add mirror reflection using reflectance field.
- *
- * Hint for the sky: lerp between white and light-blue based
- *   on the normalised y-component of ray.dir.
- * ──────────────────────────────────────────────────────────── */
+
 static Vector3 RayColor(const Scene *scene, const Ray *rayIn, int depth, int *seed) {
     if (depth <= 0)
         return (Vector3){0,0,0};   /* recursion limit hit */
@@ -88,20 +65,18 @@ static Vector3 RayColor(const Scene *scene, const Ray *rayIn, int depth, int *se
     Ray ray = *rayIn;   /* local copy — updated each bounce */
 
     for (int bounce = 0; bounce < depth; bounce++) {
-        *seed += bounce;   /* matches: seed += i */
-
+        *seed += bounce;   
         const Sphere *hit_sphere = NULL;
         float           hit_t      = 0.0f;
 
-        if (!intersect_scene(scene, &ray, 0.001f, FLT_MAX,
-                             &hit_sphere, &hit_t)) {
+        if (!SceneIntersection(scene, &ray, 0.001f, FLT_MAX, &hit_sphere, &hit_t)) {
            
             Vector3 sky = {0.6f, 0.7f, 0.9f};
             final_color = Add(final_color, Mul(sky, contributions)); 
             break;
         }
 
-        const Material *mat = &hit_sphere->mat;
+        const Material *material = &hit_sphere->material;
 
         /* hit point in world space  */
         Vector3 hit_point = Add(ray.origin, Scale(ray.direction, hit_t));
@@ -110,11 +85,11 @@ static Vector3 RayColor(const Scene *scene, const Ray *rayIn, int depth, int *se
         Vector3 normal = Norm(Subtract(hit_point, hit_sphere->origin));
 
         /* accumulate emission from this surface */
-        Vector3 emission = GetEmission(mat);
+        Vector3 emission = GetEmission(material);
         final_color = Add(final_color, Mul(emission, contributions));
 
         /* tint contributions by albedo for future bounces */
-        contributions = Mul(contributions, mat->color);
+        contributions = Mul(contributions, material->color);
 
         Vector3 scatter = Norm(Add(normal, RandomUnitVector(seed)));
 
@@ -126,8 +101,6 @@ static Vector3 RayColor(const Scene *scene, const Ray *rayIn, int depth, int *se
 
     return final_color;
 
-    /* placeholder: solid grey so the image isn't all-black */
-    return (Vector3){0.5f, 0.5f, 0.5f};
 }
 
 

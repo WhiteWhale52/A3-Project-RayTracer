@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <errno.h>
 #include "ppm.h"
 
 int WritePPM(const char* filename, const Pixel* pixels, int width, int height){

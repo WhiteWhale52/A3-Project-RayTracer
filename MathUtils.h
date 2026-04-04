@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
+#include <stdint.h>
 
 typedef struct {
     float x, y, z;
@@ -24,11 +25,11 @@ static inline Vector3 Subtract(Vector3 a, Vector3 b){
     };
 }
 
-static inline Vector3 Scale(Vector3 v, float s){
-       return (Vector3){
-        v.x * s,
-        v.y * s,
-        v.z * s
+static inline Vector3 Scale(Vector3 v, float scalingFactor){
+     return (Vector3){
+        v.x * scalingFactor,
+        v.y * scalingFactor,
+        v.z * scalingFactor
     };
 }
 
@@ -61,29 +62,29 @@ static inline float Length(Vector3 v){
 }
 
 static inline Vector3 Norm(Vector3 v) {
-     Scale(v, 1.0f / Length(v));
+     return Scale(v, 1.0f / Length(v));
 } 
 
 static inline Vector3 Lerp(Vector3 a, Vector3 b, float t){
-    Add(Scale(a, 1.0f-t), Scale(b, t));
+    return Add(Scale(a, 1.0f-t), Scale(b, t));
 }
 
 
-static int PCGHash(int input) {
+static inline int PCGHash(int input) {
     int state = input * 747796405u + 2891336453u;
     int word  = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
     return (word >> 22u) ^ word;
 }
 
 /* Advances *seed and returns a float in [0, 1). */
-static float RandFloat(int *seed) {
+static inline float RandFloat(int *seed) {
     *seed = PCGHash(*seed);
-    return (float)*seed / (float)_I32_MAX;
+    return (float)*seed / (float)UINT32_MAX;
 }
 
 /* Random unit vector — port of Utilities::InUnitSphere(seed).
  * Generates a point in [-1,1]^3 then normalises it.          */
-static Vector3 RandomUnitVector(int *seed) {
+static inline Vector3 RandomUnitVector(int *seed) {
     return Norm((Vector3){
         RandFloat(seed) * 2.0f - 1.0f,
         RandFloat(seed) * 2.0f - 1.0f,
@@ -92,7 +93,7 @@ static Vector3 RandomUnitVector(int *seed) {
 }
 
 
-static float randf(void) {
+static inline float randf(void) {
     return (float)rand() / ((float)RAND_MAX + 1.0f);
 }
 

@@ -18,14 +18,18 @@ int main(int argc, char* argv[]){
     const char* out = "Output.ppm";
 
      for (int i = 1; i < argc; i++) {
-        if      (!strcmp(argv[i], "-w") && i+1 < argc) m_ImageWidth     = atoi(argv[++i]);
+        if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-help")) {
+        Usage(argv[0]);
+        return 0;
+        }
+        else if      (!strcmp(argv[i], "-w") && i+1 < argc) m_ImageWidth     = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-h") && i+1 < argc) m_ImageHeight     = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-j") && i+1 < argc) m_NumofWorkers = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-t") && i+1 < argc) m_TileSize   = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-s") && i+1 < argc) m_Samples   = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-d") && i+1 < argc) m_Depth     = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-o") && i+1 < argc) out   = argv[++i];
-        else { usage(argv[0]); return 1; }
+        else { Usage(argv[0]); return 1; }
     }
 
     if (m_NumofWorkers < 1) {
@@ -72,7 +76,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    printf("Wrote %s (%dx%d, %d workers, tile %d, %d samples per pixel)\n",
+    printf("Wrote %s (%dx%d, %d workers, tile size %d, %d samples per pixel)\n",
                   out, m_ImageWidth, m_ImageHeight, m_NumofWorkers, m_TileSize, m_Samples);
 
     free(m_frameBuffer);
@@ -107,15 +111,11 @@ void BuildScene(Scene* scene, int width, int height, int samples, int max_depth)
      *   v  = cross(w, u)                points up               */
     Vector3 w = Norm(Subtract(look_from, look_at));
     Vector3 u = Norm(Cross(viewUp, w));
-    Vector3 v = Norm(w, u);
+    Vector3 v = Cross(w, u);
 
     scene->camera.origin     = look_from;
     scene->camera.horizontal = Scale(u, 2.0f * halfWidth);
     scene->camera.vertical   = Scale(v, 2.0f * halfHeight);
-
-    /* lower_left = origin - halfWidth*u - halfHeight*v - w
-     * This is the world-space position of the bottom-left corner
-     * of the image plane (at distance 1 from the eye along -w). */
     scene->camera.lower_left = Subtract(Subtract(Subtract(look_from, Scale(u, halfWidth)), Scale(v, halfHeight)),
                  w);
 
@@ -126,40 +126,40 @@ void BuildScene(Scene* scene, int width, int height, int samples, int max_depth)
     n = scene->num_spheres;
     scene->spheres[n].origin             = (Vector3){ 0.0f,  0.0f, 0.0f};
     scene->spheres[n].radius             = 1.0f;
-    scene->spheres[n].mat.color          = (Vector3){1.0f, 0.0f, 1.0f};
-    scene->spheres[n].mat.roughness      = 0.0f;
-    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
-    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->spheres[n].material.color          = (Vector3){1.0f, 0.0f, 1.0f};
+    scene->spheres[n].material.roughness      = 0.5f;
+    scene->spheres[n].material.emissionColor = (Vector3){0.0f,0.0f, 0.0f};
+    scene->spheres[n].material.emissionPower = 0.0f;
     scene->num_spheres++;
 
     /* Sphere 2 — blue diffuse (right)                          */
     n = scene->num_spheres;
     scene->spheres[n].origin             = (Vector3){ 2.0f,  0.0f, 0.0f};
     scene->spheres[n].radius             = 1.0f;
-    scene->spheres[n].mat.color          = (Vector3){0.2f, 0.3f, 1.0f};
-    scene->spheres[n].mat.roughness      = 0.1f;
-    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
-    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->spheres[n].material.color          = (Vector3){0.2f, 0.3f, 1.0f};
+    scene->spheres[n].material.roughness      = 0.1f;
+    scene->spheres[n].material.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
+    scene->spheres[n].material.emissionPower = 0.0f;
     scene->num_spheres++;
 
     /* Sphere 3 — emissive orange light (upper left)            */
     n = scene->num_spheres;
-    scene->spheres[n].origin             = (Vector3){-2.0f,  2.0f, 0.0f};
-    scene->spheres[n].radius             = 0.5f;
-    scene->spheres[n].mat.color          = (Vector3){0.8f, 0.5f, 0.2f};
-    scene->spheres[n].mat.roughness      = 0.0f;
-    scene->spheres[n].mat.emissionColor = (Vector3){0.9f, 0.6f, 0.2f};
-    scene->spheres[n].mat.emissionPower = 3.0f;  /* glowing    */
+    scene->spheres[n].origin             = (Vector3){-2.0f,  2.0f, -3.0f};
+    scene->spheres[n].radius             = 1.5f;
+    scene->spheres[n].material.color          = (Vector3){0.8f, 0.5f, 0.2f};
+    scene->spheres[n].material.roughness      = 0.0f;
+    scene->spheres[n].material.emissionColor = (Vector3){0.9f, 0.6f, 0.2f};
+    scene->spheres[n].material.emissionPower = 200.0f; 
     scene->num_spheres++;
 
     /* Sphere 4 — grey ground plane (huge sphere trick)         */
     n = scene->num_spheres;
     scene->spheres[n].origin             = (Vector3){ 0.0f, -101.0f, 0.0f};
     scene->spheres[n].radius             = 100.0f;
-    scene->spheres[n].mat.color          = (Vector3){0.5f, 0.5f, 0.5f};
-    scene->spheres[n].mat.roughness      = 0.8f;
-    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
-    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->spheres[n].material.color          = (Vector3){0.5f, 0.5f, 0.5f};
+    scene->spheres[n].material.roughness      = 0.8f;
+    scene->spheres[n].material.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
+    scene->spheres[n].material.emissionPower = 0.0f;
     scene->num_spheres++;
 }
 

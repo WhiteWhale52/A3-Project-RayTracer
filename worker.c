@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include <errno.h>
 #include <stdio.h>
 #include <sys/wait.h>
 
@@ -57,14 +56,14 @@ void WorkerRenderLoop(int readFD, int writeFD, const Scene* scene){
 
         size_t payload = numOfPixels * sizeof(Pixel);
         if (WriteExact(writeFD, pixelBuffer, payload) != (ssize_t) payload){
-            fprintf(stderr, "[Worder %d] write pixels failed: %s\n", pid, strerror(errno));
+            fprintf(stderr, "[Worker %d] write pixels failed: %s\n", pid, strerror(errno));
             free(pixelBuffer);
             exit(1);
         }
 
         free(pixelBuffer);
 
-        fprintf(stderr, "[Worder %d] finished tile %u ( %ux%u at %u,%u)\n", pid, 
+        fprintf(stderr, "[Worker %d] finished tile %u ( %ux%u at %u,%u)\n", pid, 
         jobMesg.m_JobID, jobMesg.m_Width, jobMesg.m_Height, jobMesg.m_XStartCoord, jobMesg.m_YStartCoord);
 
 
@@ -74,7 +73,7 @@ void WorkerRenderLoop(int readFD, int writeFD, const Scene* scene){
     exit(0);
 }
 
-static void SpawnWorkers(Worker* workers, int n, const Scene* scene){
+void SpawnWorkers(Worker* workers, int n, const Scene* scene){
     for (int i = 0; i < n; i++)
     {
         int jobPipe[2], resultPipe[2];
@@ -119,7 +118,7 @@ static void SpawnWorkers(Worker* workers, int n, const Scene* scene){
 }
 
 
-static void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffer, int imgWidth, int imgHeight, int tileSize){
+void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffer, int imgWidth, int imgHeight, int tileSize){
     int tileX = (imgWidth + tileSize - 1) / tileSize;
     int tileY = (imgHeight + tileSize - 1) / tileSize;
 
@@ -222,10 +221,10 @@ static void DispatchCollect(Worker* workers, int numOfWorkers, Pixel* frameBuffe
                   resultHeader.m_JobID, c_TileWidth, c_TileHeight, xStartCoord, yStartCoord);
         }
     }
-    free(open);
+    free(openWorkers);
 }
 
-static void RIPWorkers(Worker* workers, int n){
+void RIPWorkers(Worker* workers, int n){
     for (int i = 0; i < n; i++)
     {
         int status;
@@ -238,7 +237,7 @@ static void RIPWorkers(Worker* workers, int n){
 }
 
 
-static void Usage(const char *prog){
+void Usage(const char *prog){
       fprintf(stderr,
         "Usage: %s [options]\n"
         "  -w <width>    image width  (default %d)\n"

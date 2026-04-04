@@ -2,6 +2,8 @@
 #define IMAGESTRUCTS_H
 
 #include "MathUtils.h"
+#include <string.h>
+#include <errno.h>
 
 #define MAX_SPHERES 32
 
@@ -23,15 +25,15 @@ typedef struct {
     float roughness;
 } Material;
 
-static inline Vector3 GetEmission(const Material *mat) {
-    return Scale(mat->emissionColor, mat->emissionPower);
+static inline Vector3 GetEmission(const Material *material) {
+    return Scale(material->emissionColor, material->emissionPower);
 }
 
 
 typedef struct {
     Vector3     origin;
     float      radius;
-    Material mat;
+    Material material;
 } Sphere;
 
 
