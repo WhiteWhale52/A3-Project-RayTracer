@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <errno.h>
-#include "ppm.h"
+#include "PPM.h"
 
 int WritePPM(const char* filename, const Pixel* pixels, int width, int height){
     FILE* file = fopen(filename, "wb");
