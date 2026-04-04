@@ -3,9 +3,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra -O2 -g
 
 TARGET = Raytracer-Project
-SRCS = main.c Worker.c RayTracer.c PPM.c
+SRCS = main.c Worker.c RayTracer.c PPM.c 
 OBJS = ($SRCS:.c=.o)
-HEADERS = CommunicationsProtocol.h RayTracer.h PPM.h
+HEADERS = CommunicationsProtocol.h RayTracer.h PPM.h Worker.h ImageStructs.h
 
 all: $(TARGET)
 

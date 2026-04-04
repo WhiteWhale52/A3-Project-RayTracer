@@ -18,13 +18,18 @@ typedef struct {
 
 typedef struct {
     Vector3 color;      
-    float  reflectance; 
-    // TODO: I could add more features to this 
+    Vector3 emissionColor;      
+    float  emissionPower;
+    float roughness;
 } Material;
+
+static inline Vector3 GetEmission(const Material *mat) {
+    return Scale(mat->emissionColor, mat->emissionPower);
+}
 
 
 typedef struct {
-    Vector3     center;
+    Vector3     origin;
     float      radius;
     Material mat;
 } Sphere;

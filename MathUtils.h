@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <float.h>
 
 typedef struct {
     float x, y, z;
@@ -66,8 +67,35 @@ static inline Vector3 Norm(Vector3 v) {
 static inline Vector3 Lerp(Vector3 a, Vector3 b, float t){
     Add(Scale(a, 1.0f-t), Scale(b, t));
 }
-static inline float randf(void) {
+
+
+static int PCGHash(int input) {
+    int state = input * 747796405u + 2891336453u;
+    int word  = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+/* Advances *seed and returns a float in [0, 1). */
+static float RandFloat(int *seed) {
+    *seed = PCGHash(*seed);
+    return (float)*seed / (float)_I32_MAX;
+}
+
+/* Random unit vector — port of Utilities::InUnitSphere(seed).
+ * Generates a point in [-1,1]^3 then normalises it.          */
+static Vector3 RandomUnitVector(int *seed) {
+    return Norm((Vector3){
+        RandFloat(seed) * 2.0f - 1.0f,
+        RandFloat(seed) * 2.0f - 1.0f,
+        RandFloat(seed) * 2.0f - 1.0f
+    });
+}
+
+
+static float randf(void) {
     return (float)rand() / ((float)RAND_MAX + 1.0f);
 }
+
+
 
 #endif

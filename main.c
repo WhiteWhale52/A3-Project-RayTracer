@@ -118,7 +118,7 @@ void BuildScene(Scene* scene, int width, int height, int samples, int max_depth)
      *
      * Example:
      *   int n = scene->num_spheres;
-     *   scene->spheres[n].center        = (vec3_t){0, 0, -1};
+     *   scene->spheres[n].origin        = (vec3_t){0, 0, -1};
      *   scene->spheres[n].radius        = 0.5f;
      *   scene->spheres[n].mat.color     = (vec3_t){0.8, 0.3, 0.3};
      *   scene->spheres[n].mat.reflectance = 0.0f;
@@ -126,7 +126,7 @@ void BuildScene(Scene* scene, int width, int height, int samples, int max_depth)
      *
      *   // ground plane as a huge sphere
      *   n = scene->num_spheres;
-     *   scene->spheres[n].center        = (vec3_t){0, -100.5, -1};
+     *   scene->spheres[n].origin        = (vec3_t){0, -100.5, -1};
      *   scene->spheres[n].radius        = 100.0f;
      *   scene->spheres[n].mat.color     = (vec3_t){0.5, 0.5, 0.5};
      *   scene->spheres[n].mat.reflectance = 0.0f;
