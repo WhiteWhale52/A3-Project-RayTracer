@@ -89,48 +89,77 @@ void BuildScene(Scene* scene, int width, int height, int samples, int max_depth)
     scene->num_spheres = 0;
     scene->samples_per_pixel = samples;
    
-    /* ── TODO: set up camera ─────────────────────────────────
-     *
-     * Hint — standard pinhole setup:
-     *
-     *   vec3_t look_from = {3, 2, 5};
-     *   vec3_t look_at   = {0, 0, 0};
-     *   vec3_t vup       = {0, 1, 0};
-     *   float  vfov      = 40.0f;   // vertical FOV in degrees
-     *   float  aspect    = (float)width / (float)height;
-     *
-     *   float theta      = vfov * (float)M_PI / 180.0f;
-     *   float half_h     = tanf(theta / 2.0f);
-     *   float half_w     = aspect * half_h;
-     *
-     *   vec3_t w = vec3_norm(vec3_sub(look_from, look_at));
-     *   vec3_t u = vec3_norm(vec3_cross(vup, w));
-     *   vec3_t v = vec3_cross(w, u);
-     *
-     *   scene->cam.origin      = look_from;
-     *   scene->cam.horizontal  = vec3_scale(u, 2*half_w);
-     *   scene->cam.vertical    = vec3_scale(v, 2*half_h);
-     *   scene->cam.lower_left  = look_from
-     *                            - half_w*u - half_h*v - w;
-     */
 
-    /* ── TODO: add spheres ───────────────────────────────────
-     *
-     * Example:
-     *   int n = scene->num_spheres;
-     *   scene->spheres[n].origin        = (vec3_t){0, 0, -1};
-     *   scene->spheres[n].radius        = 0.5f;
-     *   scene->spheres[n].mat.color     = (vec3_t){0.8, 0.3, 0.3};
-     *   scene->spheres[n].mat.reflectance = 0.0f;
-     *   scene->num_spheres++;
-     *
-     *   // ground plane as a huge sphere
-     *   n = scene->num_spheres;
-     *   scene->spheres[n].origin        = (vec3_t){0, -100.5, -1};
-     *   scene->spheres[n].radius        = 100.0f;
-     *   scene->spheres[n].mat.color     = (vec3_t){0.5, 0.5, 0.5};
-     *   scene->spheres[n].mat.reflectance = 0.0f;
-     *   scene->num_spheres++;
-     */
+    Vector3 look_from = {0.0f,  0.0f, 6.0f};  /* m_Position     */
+    Vector3 look_at   = {0.0f,  0.0f, 0.0f};  /* pos + forward  */
+    Vector3 viewUp       = {0.0f,  1.0f, 0.0f};
+    float  viewFOV      = 45.0f;                 /* m_VerticalFOV  */
+    float  aspect    = (float)width / (float)height;
+
+    /* halfHeight = tan(vFOV/2) — same value that glm::perspectiveFov
+     * encodes into the projection matrix's [1][1] entry        */
+    float halfHeight = tanf(viewFOV * (float)M_PI / 180.0f / 2.0f);
+    float halfWidth = aspect * halfHeight;
+
+    /* orthonormal camera basis — equivalent to glm::lookAt:
+     *   w  = normalize(eye - target)    right-handed -Z forward
+     *   u  = normalize(cross(viewUp, w))   points right
+     *   v  = cross(w, u)                points up               */
+    Vector3 w = Norm(Subtract(look_from, look_at));
+    Vector3 u = Norm(Cross(viewUp, w));
+    Vector3 v = Norm(w, u);
+
+    scene->camera.origin     = look_from;
+    scene->camera.horizontal = Scale(u, 2.0f * halfWidth);
+    scene->camera.vertical   = Scale(v, 2.0f * halfHeight);
+
+    /* lower_left = origin - halfWidth*u - halfHeight*v - w
+     * This is the world-space position of the bottom-left corner
+     * of the image plane (at distance 1 from the eye along -w). */
+    scene->camera.lower_left = Subtract(Subtract(Subtract(look_from, Scale(u, halfWidth)), Scale(v, halfHeight)),
+                 w);
+
+    /* ── Spheres — matching the default scene from your C++ app */
+    int n;
+
+    /* Sphere 1 — pink diffuse (centre stage)                   */
+    n = scene->num_spheres;
+    scene->spheres[n].origin             = (Vector3){ 0.0f,  0.0f, 0.0f};
+    scene->spheres[n].radius             = 1.0f;
+    scene->spheres[n].mat.color          = (Vector3){1.0f, 0.0f, 1.0f};
+    scene->spheres[n].mat.roughness      = 0.0f;
+    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
+    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->num_spheres++;
+
+    /* Sphere 2 — blue diffuse (right)                          */
+    n = scene->num_spheres;
+    scene->spheres[n].origin             = (Vector3){ 2.0f,  0.0f, 0.0f};
+    scene->spheres[n].radius             = 1.0f;
+    scene->spheres[n].mat.color          = (Vector3){0.2f, 0.3f, 1.0f};
+    scene->spheres[n].mat.roughness      = 0.1f;
+    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
+    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->num_spheres++;
+
+    /* Sphere 3 — emissive orange light (upper left)            */
+    n = scene->num_spheres;
+    scene->spheres[n].origin             = (Vector3){-2.0f,  2.0f, 0.0f};
+    scene->spheres[n].radius             = 0.5f;
+    scene->spheres[n].mat.color          = (Vector3){0.8f, 0.5f, 0.2f};
+    scene->spheres[n].mat.roughness      = 0.0f;
+    scene->spheres[n].mat.emissionColor = (Vector3){0.9f, 0.6f, 0.2f};
+    scene->spheres[n].mat.emissionPower = 3.0f;  /* glowing    */
+    scene->num_spheres++;
+
+    /* Sphere 4 — grey ground plane (huge sphere trick)         */
+    n = scene->num_spheres;
+    scene->spheres[n].origin             = (Vector3){ 0.0f, -101.0f, 0.0f};
+    scene->spheres[n].radius             = 100.0f;
+    scene->spheres[n].mat.color          = (Vector3){0.5f, 0.5f, 0.5f};
+    scene->spheres[n].mat.roughness      = 0.8f;
+    scene->spheres[n].mat.emissionColor = (Vector3){0.0f, 0.0f, 0.0f};
+    scene->spheres[n].mat.emissionPower = 0.0f;
+    scene->num_spheres++;
 }
 
